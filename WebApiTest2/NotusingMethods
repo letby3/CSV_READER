@@ -1,0 +1,78 @@
+﻿        protected async Task TestSQL()
+        {
+            try
+            {
+                await Sqlcon.OpenAsync();                
+                SqlCommand command1 = new SqlCommand("INSERT INTO Table1 (Date, Set1, Set2) VALUES ('2011-07-12_14-06-19', 1483, 275,70);", Sqlcon);            
+                int num = await command1.ExecuteNonQueryAsync();
+                LabelTest.Text = num.ToString();                
+            }
+            catch (SqlException ex)
+            {
+                LabelTest.Text = "ERROR" + ex.Message;
+                Console.WriteLine("ERROR" + ex.Message);
+            }
+            finally
+            {
+                LabelTest.Text = ("Подключение закрыто!");
+                Sqlcon.Close();                
+                Console.WriteLine("Подключение закрыто!");
+            }
+        }
+
+               protected void Page_Load(object sender, EventArgs e)
+        {
+            UpdateListBox1();
+            add_sql_method.ParseInTable1FromSQL(Table1);           
+        }
+
+
+        protected void UpdateListBox1()
+        {
+            string path_files = Request.PhysicalApplicationPath + @"uploads\";
+            string[] file_names = Directory.GetFiles(path_files);
+            ListBox1.DataSource = new ArrayList(file_names);
+            ListBox1.DataBind();
+        }
+
+        public void ListBoxCSV(string path)
+        {
+            string[] dirFilesStr = Directory.GetFiles(path);            
+            for (int i = 0; i < dirFilesStr.Length; i++)
+                if (dirFilesStr[i].Contains(".csv"))
+                    sr.Add(dirFilesStr[i]);            
+        }
+
+        public ArrayList ReadListBoxCSV(string path)
+        {
+            ArrayList data = new ArrayList();
+            using (StreamReader cin = new StreamReader(path))
+            {
+                while (!cin.EndOfStream)
+                    data.Add(cin.ReadLine());
+            }
+            return data;
+        }        
+
+        protected void UploadDataButton_Click(object sender, EventArgs e)
+        {
+            string saveDir = @"uploads\";
+            string appPath = Request.PhysicalApplicationPath;
+
+            if (FileUpload1.HasFile)
+            {                                                                
+                FileUpload1.SaveAs(appPath + saveDir + FileUpload1.FileName);
+                UpdateListBox1();
+            }
+
+        }        
+
+        protected void ButtonListboxAdd_Click(object sender, EventArgs e)
+        {
+            add_sql_method.AddDataSQL(ListBox1, LabelTest, ListBox1.SelectedItem.Text.ToString());
+            add_sql_method.ParseInTable1FromSQL(Table1);
+        }
+    }
+}
+
+CREATE TABLE Values1 (Date VARCHAR(30), Set1 INT NOT NULL, Set2 FLOAT NOT NULL, FileName VARCHAR(MAX) NOT NULL);
