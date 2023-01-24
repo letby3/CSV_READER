@@ -47,6 +47,32 @@
             height: 35vh;
             width: 15vw;
         }
+        .EXPORTJSON {
+            position: absolute;
+            top: 46vh;
+            left: 27vw;
+            
+        }
+        #DropDownList1 {
+            position: inherit;
+            top: 4vh;
+            left: 0vw;
+        }
+        #FileNameSort {
+            position: inherit;
+            top: 8vh;
+            left: 0vw;
+        }
+        #HelpText {
+            position: inherit;
+            top: 12vh;
+            left: 0vw;
+        }
+        #HelpTextTime{
+            position: inherit;
+            top: 16vh;
+            left: 0vw;
+        }
     </style>
 </head>
 <body>
@@ -74,6 +100,20 @@
                      CellPadding="15" 
                      CellSpacing="0" 
                      Runat="server"/>
+                
+            </div>
+            <div class="EXPORTJSON" alight="left">
+                <asp:Button ID="ExportJsonButton" runat="server" Text="Export Json" OnClick="ExportJsonButton_Click" />
+                <asp:Label ID="xportinfo" runat="server" Text="file_name"></asp:Label>
+                <asp:DropDownList ID="DropDownList1" runat="server">
+                    <asp:ListItem Value="0">По имени файла</asp:ListItem>
+                    <asp:ListItem Value="1">По времени запуска первой операции </asp:ListItem>
+                    <asp:ListItem Value="2">По среднему показателю </asp:ListItem>
+                    <asp:ListItem Value="3">По среднему времени </asp:ListItem>
+                </asp:DropDownList>
+                <asp:TextBox ID="FileNameSort" runat="server"></asp:TextBox>
+                <asp:Label ID="HelpText" runat="server" Text="Имя файла/левая и правая граница"></asp:Label>
+                <asp:Label ID="HelpTextTime" runat="server" Text="TimeFormat: 2021-01-31;2024-01-01"></asp:Label>
             </div>
             <div class="ListBox1Dv">                
                 <asp:ListBox ID="ListBox1"                     
@@ -94,6 +134,9 @@
             <p align="center" style="color: #000000; font-family: 'Times New Roman', Times, serif; font-size: 14px; text-decoration: blink;">
                 designed by letby3</p>
         </div>        
+        
+        
+        
     </form>
 </body>
 </html>

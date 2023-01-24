@@ -23,10 +23,8 @@ using System.Threading.Tasks;
 
 namespace WebApiTest2.Metod1
 {
-    public class AddSqlData
+    public class AddSqlData : AddSqlDataBase
     {
-        protected string con_string_sql;
-        protected SqlConnection Sqlcon;
         public AddSqlData(string connection_string_sql, SqlConnection sql_connnection) 
         {
             con_string_sql = connection_string_sql;
@@ -42,7 +40,8 @@ namespace WebApiTest2.Metod1
 
         ///Functions of the main implementation...........///////////////////////////////////////////////////////////////////////////////////////////////
 
-        public void ValidationSQL()
+        
+        public override void ValidationSQL()
         {
             try
             {
@@ -57,6 +56,7 @@ namespace WebApiTest2.Metod1
                 num_str_del += command.ExecuteNonQuery();
                 command.CommandText = @"DELETE FROM Values1 WHERE Set2 < 0;";
                 num_str_del += command.ExecuteNonQuery();
+                Sqlcon.Close();
                 
             }
             catch (SqlException ex)
@@ -64,7 +64,7 @@ namespace WebApiTest2.Metod1
                 if (ex.Message.ToString() == "Invalid object name 'Values1'.")
                 {
                     Sqlcon.Close();
-                    _ = CreateTable1SQL();
+                    CreateTable1SQL();
                 }
                 Console.WriteLine("ERROR" + ex.Message);
             }
@@ -75,7 +75,7 @@ namespace WebApiTest2.Metod1
             }
         }
 
-        public void AddDataSQL(string file_path)
+        public override void AddDataSQL(string file_path)
         {
 
             try
@@ -91,7 +91,7 @@ namespace WebApiTest2.Metod1
                     while (!cin.EndOfStream && num_str < 10000)
                     {
                         num_str++;
-                        string[] str3 = cin.ReadLine().ToString().Split(';');
+                        string[] str3 = cin.ReadLine().ToString().Split(';');                        
                         str3[0] = str3[0].Split('_')[0] + 'T' + str3[0].Split('_')[1].Replace('-', ':');
 
                         command.Parameters.Add(new SqlParameter("@Date1", str3[0]));
@@ -104,7 +104,8 @@ namespace WebApiTest2.Metod1
                 }
                 
                 Sqlcon.Close();
-                GetResultSQL();
+                ValidationSQL();                
+                //GetResultSQL();
 
             }
             catch (SqlException ex)
@@ -112,7 +113,7 @@ namespace WebApiTest2.Metod1
                 if (ex.Message.ToString() == "Invalid object name 'Values1'.")
                 {
                     Sqlcon.Close();
-                    _ = CreateTable1SQL();
+                    CreateTable1SQL();
                 }
                 Console.WriteLine("ERROR" + ex.Message);
             }
@@ -123,7 +124,7 @@ namespace WebApiTest2.Metod1
             }
         }
 
-        public void GetResultSQL()
+        public override void GetResultSQL()
         {
             try
             {
@@ -131,15 +132,15 @@ namespace WebApiTest2.Metod1
                 string command_str = "TRUNCATE TABLE.Results1";
                 SqlCommand command = new SqlCommand(command_str, Sqlcon);
                 command.ExecuteNonQuery();
-                command.CommandText = "INSERT INTO Results1 (alltime, mindate, avrtime, avrind, maxind, minind, strcnt, medind) SELECT (MAX(Set1) - MIN(Set1)), MIN(Date), AVG(Set1), AVG(Set2), MAX(Set2), MIN(Set2), COUNT(*), 0.0 FROM Values1";
+                command.CommandText = "INSERT INTO Results1 (alltime, mindate, avrtime, avrind, maxind, minind, strcnt, medind, ID) SELECT (MAX(Set1) - MIN(Set1)), MIN(Date), AVG(Set1), AVG(Set2), MAX(Set2), MIN(Set2), COUNT(*), (SELECT TOP(1) PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY Set2) OVER() FROM Values1), 1 FROM Values1";
                 command.ExecuteNonQuery();
             }
             catch (SqlException ex)
-            {
-                if (ex.Message.ToString() == "Invalid object name 'Results1'.")
+            {                
+                if (ex.Message.ToString() == "Invalid object name 'Results1'." || ex.Message.ToString() == "Cannot find the object \"Results1\" because it does not exist or you do not have permissions.")
                 {
                     Sqlcon.Close();
-                    _ = CreateTable2SQL();
+                    CreateTable2SQL();
                 }
                 Console.WriteLine("ERROR" + ex.Message);
             }
@@ -150,17 +151,17 @@ namespace WebApiTest2.Metod1
             }
         }        
 
-        protected async Task CreateTable1SQL()
+        protected override void CreateTable1SQL()
         {
             try
             {
-                await Sqlcon.OpenAsync();
+                Sqlcon.Open();
                 SqlCommand command = new SqlCommand
                 {
                     CommandText = "CREATE TABLE Values1 (Date DATETIME, Set1 INT NOT NULL, Set2 FLOAT NOT NULL, FileName VARCHAR(MAX) NOT NULL);",
                     Connection = Sqlcon
                 };
-                await command.ExecuteNonQueryAsync();
+                command.ExecuteNonQuery();
                 Sqlcon.Close();
             }
             catch (SqlException ex)
@@ -174,18 +175,18 @@ namespace WebApiTest2.Metod1
             }
         }
 
-        public async Task CreateTable2SQL()
+        public override void CreateTable2SQL()
         {
             try
             {
 
-                await Sqlcon.OpenAsync();
+                Sqlcon.Open();
                 SqlCommand command = new SqlCommand
                 {
-                    CommandText = "CREATE TABLE Results1 (alltime INT, mindate DATETIME, avrtime INT, avrind FLOAT, medind FLOAT, maxind FLOAT, minind FLOAT, strcnt FLOAT);",
+                    CommandText = "CREATE TABLE Results1 (alltime INT, mindate DATETIME, avrtime INT, avrind FLOAT, medind FLOAT, maxind FLOAT, minind FLOAT, strcnt FLOAT, ID INT);",
                     Connection = Sqlcon
                 };
-                await command.ExecuteNonQueryAsync();
+                command.ExecuteNonQuery();
                 Sqlcon.Close();
             }
             catch (SqlException ex)
@@ -199,13 +200,13 @@ namespace WebApiTest2.Metod1
             }
         }
 
-        protected async Task CreatBaseSQL()
+        protected override void  CreatBaseSQL()
         {
             try
             {
-                await Sqlcon.OpenAsync();
+                Sqlcon.Open();
                 SqlCommand command = new SqlCommand("CREATE DATABASE Database1", Sqlcon);
-                await command.ExecuteNonQueryAsync();
+                command.ExecuteNonQuery();
             }
             catch (SqlException ex)
             {
@@ -221,7 +222,7 @@ namespace WebApiTest2.Metod1
 
         ///Side implementation functions...........///////////////////////////////////////////////////////////////////////////////////////////////
 
-        public void DelDataSQL(string file_path)
+        public override void DelDataSQL(string file_path)
         {            
             try
             {
@@ -230,14 +231,14 @@ namespace WebApiTest2.Metod1
                 SqlCommand command = new SqlCommand(command_string, Sqlcon);
                 command.ExecuteNonQuery();
                 Sqlcon.Close();
-                GetResultSQL();
+                //GetResultSQL();
             }
             catch (SqlException ex)
             {                
                 if (ex.Message.ToString() == "Invalid object name 'Values1'.")
                 {
                     Sqlcon.Close();
-                    _ = CreateTable1SQL();
+                    CreateTable1SQL();
                 }
                 Console.WriteLine("ERROR" + ex.Message);
             }
@@ -250,7 +251,7 @@ namespace WebApiTest2.Metod1
 
         
 
-        public void ParseInTable1FromSQL(Table Table1, Table Table2)
+        public override void ParseInTable1FromSQL(Table Table1, Table Table2)
         {
             try
             {
@@ -289,7 +290,7 @@ namespace WebApiTest2.Metod1
 
         }
 
-        public void ParseInTable2FromSQL(Table Table2)
+        public override void ParseInTable2FromSQL(Table Table2)
         {
             Table2.Rows.Clear();
             try
@@ -298,105 +299,106 @@ namespace WebApiTest2.Metod1
                 SqlCommand command = new SqlCommand("SELECT * FROM Results1", Sqlcon);
                 using (SqlDataReader reader = command.ExecuteReader())
                 {
+                    
+                    if(reader.Read())
+                    {                    
+                        { 
+                            TableRow r = new TableRow();
+                            TableCell c1 = new TableCell(), c2 = new TableCell();
+                            c1.Controls.Add(new LiteralControl("ALL TIME"));
+                            if(!reader.IsDBNull(0))
+                                c2.Controls.Add(new LiteralControl(reader.GetInt32(0).ToString()));
+                            else
+                                c2.Controls.Add(new LiteralControl("-"));
+                            r.Cells.Add(c1);
+                            r.Cells.Add(c2);
+                            Table2.Rows.Add(r);
+                        }
 
-                    reader.Read();
-
-                    { 
-                        TableRow r = new TableRow();
-                        TableCell c1 = new TableCell(), c2 = new TableCell();
-                        c1.Controls.Add(new LiteralControl("ALL TIME"));
-                        if(!reader.IsDBNull(0))
-                            c2.Controls.Add(new LiteralControl(reader.GetInt32(0).ToString()));
-                        else
-                            c2.Controls.Add(new LiteralControl("-"));
-                        r.Cells.Add(c1);
-                        r.Cells.Add(c2);
-                        Table2.Rows.Add(r);
-                    }
-
-                    {
-                        TableRow r = new TableRow();
-                        TableCell c1 = new TableCell(), c2 = new TableCell();
-                        c1.Controls.Add(new LiteralControl("MIN DATE"));
-                        if (!reader.IsDBNull(1))
-                            c2.Controls.Add(new LiteralControl(reader.GetDateTime(1).ToString()));
-                        else
-                            c2.Controls.Add(new LiteralControl("-"));
-                        r.Cells.Add(c1);
-                        r.Cells.Add(c2);
-                        Table2.Rows.Add(r);
-                    }
-                    { 
-                        TableRow r = new TableRow();
-                        TableCell c1 = new TableCell(), c2 = new TableCell();
-                        c1.Controls.Add(new LiteralControl("AVG TIME"));
-                        if (!reader.IsDBNull(2))
-                            c2.Controls.Add(new LiteralControl(reader.GetInt32(2).ToString()));
-                        else
-                            c2.Controls.Add(new LiteralControl("-"));
-                        r.Cells.Add(c1);
-                        r.Cells.Add(c2);
-                        Table2.Rows.Add(r);
-                    }
-                    { 
-                        TableRow r = new TableRow();
-                        TableCell c1 = new TableCell(), c2 = new TableCell();
-                        c1.Controls.Add(new LiteralControl("AVG INDEX"));
-                        if (!reader.IsDBNull(3))
-                            c2.Controls.Add(new LiteralControl(reader.GetDouble(3).ToString("#.#")));
-                        else
-                            c2.Controls.Add(new LiteralControl("-"));
-                        r.Cells.Add(c1);
-                        r.Cells.Add(c2);
-                        Table2.Rows.Add(r);
-                    }
-                    { 
-                        TableRow r = new TableRow();
-                        TableCell c1 = new TableCell(), c2 = new TableCell();
-                        c1.Controls.Add(new LiteralControl("MEDIAN INDEX"));
-                        if (!reader.IsDBNull(4))
-                            c2.Controls.Add(new LiteralControl(reader.GetDouble(4).ToString("#.#")));
-                        else
-                            c2.Controls.Add(new LiteralControl("-"));
-                        r.Cells.Add(c1);
-                        r.Cells.Add(c2);
-                        Table2.Rows.Add(r);
-                    }
-                    { 
-                        TableRow r = new TableRow();
-                        TableCell c1 = new TableCell(), c2 = new TableCell();
-                        c1.Controls.Add(new LiteralControl("MAX INDEX"));
-                        if (!reader.IsDBNull(5))
-                            c2.Controls.Add(new LiteralControl(reader.GetDouble(5).ToString("#.#")));
-                        else
-                            c2.Controls.Add(new LiteralControl("-"));
-                        r.Cells.Add(c1);
-                        r.Cells.Add(c2);
-                        Table2.Rows.Add(r);
-                    }
-                    { 
-                        TableRow r = new TableRow();
-                        TableCell c1 = new TableCell(), c2 = new TableCell();
-                        c1.Controls.Add(new LiteralControl("MIN INDEX"));
-                        if (!reader.IsDBNull(6))
-                            c2.Controls.Add(new LiteralControl(reader.GetDouble(6).ToString("#.#")));
-                        else
-                            c2.Controls.Add(new LiteralControl("-"));
-                        r.Cells.Add(c1);
-                        r.Cells.Add(c2);
-                        Table2.Rows.Add(r);
-                    }
-                    { 
-                        TableRow r = new TableRow();
-                        TableCell c1 = new TableCell(), c2 = new TableCell();
-                        c1.Controls.Add(new LiteralControl("STR CNT"));
-                        if (!reader.IsDBNull(7))
-                            c2.Controls.Add(new LiteralControl(reader.GetDouble(7).ToString("#.#")));
-                        else
-                            c2.Controls.Add(new LiteralControl("-"));
-                        r.Cells.Add(c1);
-                        r.Cells.Add(c2);
-                        Table2.Rows.Add(r);
+                        {
+                            TableRow r = new TableRow();
+                            TableCell c1 = new TableCell(), c2 = new TableCell();
+                            c1.Controls.Add(new LiteralControl("MIN DATE"));
+                            if (!reader.IsDBNull(1))
+                                c2.Controls.Add(new LiteralControl(reader.GetDateTime(1).ToString()));
+                            else
+                                c2.Controls.Add(new LiteralControl("-"));
+                            r.Cells.Add(c1);
+                            r.Cells.Add(c2);
+                            Table2.Rows.Add(r);
+                        }
+                        { 
+                            TableRow r = new TableRow();
+                            TableCell c1 = new TableCell(), c2 = new TableCell();
+                            c1.Controls.Add(new LiteralControl("AVG TIME"));
+                            if (!reader.IsDBNull(2))
+                                c2.Controls.Add(new LiteralControl(reader.GetInt32(2).ToString()));
+                            else
+                                c2.Controls.Add(new LiteralControl("-"));
+                            r.Cells.Add(c1);
+                            r.Cells.Add(c2);
+                            Table2.Rows.Add(r);
+                        }
+                        { 
+                            TableRow r = new TableRow();
+                            TableCell c1 = new TableCell(), c2 = new TableCell();
+                            c1.Controls.Add(new LiteralControl("AVG INDEX"));
+                            if (!reader.IsDBNull(3))
+                                c2.Controls.Add(new LiteralControl(reader.GetDouble(3).ToString("#.#")));
+                            else
+                                c2.Controls.Add(new LiteralControl("-"));
+                            r.Cells.Add(c1);
+                            r.Cells.Add(c2);
+                            Table2.Rows.Add(r);
+                        }
+                        { 
+                            TableRow r = new TableRow();
+                            TableCell c1 = new TableCell(), c2 = new TableCell();
+                            c1.Controls.Add(new LiteralControl("MEDIAN INDEX"));
+                            if (!reader.IsDBNull(4))
+                                c2.Controls.Add(new LiteralControl(reader.GetDouble(4).ToString("#.#")));
+                            else
+                                c2.Controls.Add(new LiteralControl("-"));
+                            r.Cells.Add(c1);
+                            r.Cells.Add(c2);
+                            Table2.Rows.Add(r);
+                        }
+                        { 
+                            TableRow r = new TableRow();
+                            TableCell c1 = new TableCell(), c2 = new TableCell();
+                            c1.Controls.Add(new LiteralControl("MAX INDEX"));
+                            if (!reader.IsDBNull(5))
+                                c2.Controls.Add(new LiteralControl(reader.GetDouble(5).ToString("#.#")));
+                            else
+                                c2.Controls.Add(new LiteralControl("-"));
+                            r.Cells.Add(c1);
+                            r.Cells.Add(c2);
+                            Table2.Rows.Add(r);
+                        }
+                        { 
+                            TableRow r = new TableRow();
+                            TableCell c1 = new TableCell(), c2 = new TableCell();
+                            c1.Controls.Add(new LiteralControl("MIN INDEX"));
+                            if (!reader.IsDBNull(6))
+                                c2.Controls.Add(new LiteralControl(reader.GetDouble(6).ToString("#.#")));
+                            else
+                                c2.Controls.Add(new LiteralControl("-"));
+                            r.Cells.Add(c1);
+                            r.Cells.Add(c2);
+                            Table2.Rows.Add(r);
+                        }
+                        { 
+                            TableRow r = new TableRow();
+                            TableCell c1 = new TableCell(), c2 = new TableCell();
+                            c1.Controls.Add(new LiteralControl("STR CNT"));
+                            if (!reader.IsDBNull(7))
+                                c2.Controls.Add(new LiteralControl(reader.GetDouble(7).ToString("#.#")));
+                            else
+                                c2.Controls.Add(new LiteralControl("-"));
+                            r.Cells.Add(c1);
+                            r.Cells.Add(c2);
+                            Table2.Rows.Add(r);
+                        }
                     }
 
                 }
