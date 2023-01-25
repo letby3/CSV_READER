@@ -44,7 +44,7 @@ namespace WebApiTest2.wwwroot
                 FileUpload1.SaveAs(appPath + saveDir + FileUpload1.FileName);                
             
             ListBoxCSV();
-            
+                                    
         }        
 
         protected void ButtonListboxAdd_Click(object sender, EventArgs e)
@@ -93,8 +93,7 @@ namespace WebApiTest2.wwwroot
             else if (DropDownList1.SelectedIndex == 3)
             {
                 string[] set2_drop_list = FileNameSort.Text.Split(';');
-                float[] set2_float = { float.Parse(set2_drop_list[0]), float.Parse(set2_drop_list[1]) };
-                LabelTest.Text = set2_float[0].ToString() + ' ' + set2_float[1].ToString();
+                float[] set2_float = { float.Parse(set2_drop_list[0]), float.Parse(set2_drop_list[1]) };                
                 if (set2_drop_list.Length == 2)
                     xportinfo.Text = fileSave.Save(set2_float[0], set2_float[1], Request.PhysicalApplicationPath + @"\SaveJson");
                 else

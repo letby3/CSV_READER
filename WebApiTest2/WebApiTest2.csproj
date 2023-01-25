@@ -68,14 +68,14 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="datasrc" />
-    <Content Include="App_Data\Database1.mdf" />
-    <Content Include="App_Data\Database1_log.ldf">
-      <DependentUpon>Database1.mdf</DependentUpon>
-    </Content>
     <None Include="NotusingMethods">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>NotusingMethods1.cs</LastGenOutput>
     </None>
+    <Content Include="App_Data\Database1.mdf" />
+    <Content Include="App_Data\Database1_log.ldf">
+      <DependentUpon>Database1.mdf</DependentUpon>
+    </Content>
     <Content Include="Web.config" />
     <Content Include="wwwroot\index.aspx" />
     <Content Include="Test1.csv" />
@@ -86,6 +86,9 @@
     <Compile Include="Metod1\AddSqlData.cs" />
     <Compile Include="Metod1\AddSqlDataBase.cs" />
     <Compile Include="Metod1\GetJsonSQL.cs" />
+    <Compile Include="Metod1\GetJsonSQLBase.cs" />
+    <Compile Include="Metod1\GetValuesSQL.cs" />
+    <Compile Include="Metod1\GetValuesSQLBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="wwwroot\SessionM.cs" />
     <Compile Include="wwwroot\index.aspx.cs">
